@@ -5,41 +5,77 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administration - La Plateforme_</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="./style/style.css">
+    <link rel="stylesheet" href="style/style.css">
 </head>
 <body>
-    <div class="container mt-5 text-center">
-        <h1>Connexion Administration</h1>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#adminLoginModal">Se connecter</button>
-    </div>
-
-    <!-- Modal Connexion Admin -->
-    <div class="modal fade" id="adminLoginModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content glass-effect">
-                <div class="modal-header">
-                    <h5 class="modal-title">Connexion Admin/Modérateur</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" title="Fermer la fenêtre"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="adminLoginForm">
-                        <div class="mb-3">
-                            <label for="adminEmail" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="adminEmail" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="adminPassword" class="form-label">Mot de passe</label>
-                            <input type="password" class="form-control" id="adminPassword" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Se connecter</button>
-                    </form>
-                </div>
+    <!-- Carousel -->
+    <div id="carouselHeader" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img src="assets/images ETUDIANTS.jpeg" class="d-block w-100" alt="Slide 1">
+            </div>
+            <div class="carousel-item">
+                <img src="assets/img/etudiant-comptant-deux_1368-9028.avif" class="d-block w-100" alt="Slide 2">
             </div>
         </div>
     </div>
 
+    <div class="container mt-5">
+        <h2>Liste des élèves inscrits</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Email</th>
+                    <th>Date choisie</th>
+                    <th>Statut</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="studentList"></tbody>
+        </table>
+    </div>
+
+    <div class="container mt-3 text-end">
+        <button id="logoutButton" class="btn btn-danger">Se déconnecter</button>
+        <a href="/big-job/index.html" class="btn btn-secondary">Retour à l'accueil</a>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="js/main.js"></script>
+    <script src="/big-job/js/script.js"></script>
+
+    <script>
+        async function loadRegistrations() {
+            const data = await fetchData();
+            const studentList = document.getElementById('studentList');
+
+            studentList.innerHTML = '';
+            data.registrations.forEach((reg, index) => {
+                studentList.innerHTML += `
+                    <tr>
+                        <td>${reg.name}</td>
+                        <td>${reg.email}</td>
+                        <td>${reg.date}</td>
+                        <td id="status-${index}">${reg.status}</td>
+                        <td>
+                            <button class="btn btn-success btn-sm" onclick="updateStatus(${index}, 'accepted')">Accepter</button>
+                            <button class="btn btn-danger btn-sm" onclick="updateStatus(${index}, 'rejected')">Refuser</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function updateStatus(index, status) {
+            const data = await fetchData();
+            data.registrations[index].status = status;
+            await saveData(data);
+            document.getElementById(`status-${index}`).textContent = status;
+            alert(`Statut mis à jour : ${status}`);
+        }
+
+        document.addEventListener('DOMContentLoaded', loadRegistrations);
+    </script>
 </body>
 </html>

@@ -6,6 +6,16 @@
             "role": "student"
         },
         {
+            "email": " oussama.halima-filali2@laplateforme.io",
+            "password": "pass123",
+            "role": "student"
+        },
+        {
+            "email": "sami.youri@laplateforme.io",
+            "password": "pass456",
+            "role": "student"
+        },
+        {
             "email": "admin@laplateforme.io",
             "password": "adminpass",
             "role": "admin"
@@ -13,16 +23,35 @@
     ],
     "events": [
         {
+            "id": 1,
             "date": "2025-03-25",
             "title": "Journée Portes Ouvertes - Alternance",
-            "maxParticipants": 50,
-            "registered": 30
+            "maxParticipants": 20,
+            "registered": 10
         },
         {
+            "id": 2,
             "date": "2025-03-26",
             "title": "Journée Portes Ouvertes - Développement Web",
-            "maxParticipants": 40,
-            "registered": 20
+            "maxParticipants": 20,
+            "registered": 5
+        }
+    ],
+    "registrations": [
+        {
+            "userId": 1,
+            "eventId": 1,
+            "status": "en attente"
+        },
+        {
+            "userId": 2,
+            "eventId": 1,
+            "status": "accepté"
+        },
+        {
+            "userId": 1,
+            "eventId": 2,
+            "status": "refuser"
         }
     ]
 }

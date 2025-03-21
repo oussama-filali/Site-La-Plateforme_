@@ -1,101 +1,138 @@
-$(document).ready(function() {
-    // Données JSON (simulées ici, à charger depuis data.json dans un projet réel)
-    const data = {
-        "users": [
-            {"email": "user1@laplateforme.io", "password": "password123", "role": "student"},
-            {"email": "admin@laplateforme.io", "password": "adminpass", "role": "admin"}
-        ],
-        "events": [
-            {"date": "2025-03-25", "title": "Journée Portes Ouvertes - Alternance", "maxParticipants": 50, "registered": 30},
-            {"date": "2025-03-26", "title": "Journée Portes Ouvertes - Développement Web", "maxParticipants": 40, "registered": 20}
-        ]
-    };
+// Variables globales pour les données JSON
+let data = {};
 
-    // Afficher les événements sur la page d'accueil
-    function loadEvents() {
-        const eventList = $('#eventList');
-        data.events.forEach(event => {
-            const availability = event.maxParticipants - event.registered;
-            const card = `
-                <div class="col-md-6 mb-3">
-                    <div class="card glass-effect">
-                        <div class="card-body">
-                            <h5 class="card-title">${event.title}</h5>
-                            <p class="card-text">Date: ${event.date}</p>
-                            <p class="card-text">Places restantes: ${availability}/${event.maxParticipants}</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-            eventList.append(card);
-        });
+// Charger les données JSON
+async function fetchData() {
+    try {
+        const response = await fetch('data.json');
+        data = await response.json();
+    } catch (error) {
+        console.error('Erreur chargement JSON:', error);
+        data = {};
     }
-    loadEvents();
+}
 
-    // Charger les événements dans le modal du tableau de bord
-    function loadEventOptions() {
-        const eventSelect = $('#eventSelect');
-        data.events.forEach(event => {
-            const availability = event.maxParticipants - event.registered;
-            if (availability > 0) {
-                eventSelect.append(`<option value="${event.date}">${event.title} (${event.date}) - ${availability} places</option>`);
-            }
-        });
+// Sauvegarder les données JSON (simulation)
+async function saveData(updatedData) {
+    console.log('Données sauvegardées :', updatedData);
+    data = updatedData; // Mise à jour locale
+}
+
+// Fermer un modal
+function closeModal(modalId) {
+    const modal = bootstrap.Modal.getInstance(document.getElementById(modalId));
+    if (modal) modal.hide();
+}
+
+// Vérifier l'utilisateur connecté
+function checkLoggedInUser() {
+    const user = JSON.parse(sessionStorage.getItem('loggedInUser'));
+    const currentPage = window.location.pathname;
+
+    if (!user && (currentPage.includes('student-dashboard.html') || currentPage.includes('admin.html'))) {
+        alert('Vous devez être connecté.');
+        window.location.href = 'index.html';
+        return false;
     }
-    loadEventOptions();
+    return true;
+}
 
-    // Vérification email domaine @laplateforme.io pour inscription
-    $('#signupForm').submit(function(e) {
-        e.preventDefault();
-        const email = $('#signupEmail').val();
-        const password = $('#signupPassword').val();
-        if (!email.endsWith('@laplateforme.io')) {
-            alert('Veuillez utiliser une adresse @laplateforme.io');
-            return;
-        }
-        // Simulation ajout utilisateur
-        data.users.push({"email": email, "password": password, "role": "student"});
-        alert('Inscription réussie !');
-        window.location.href = 'student-dashboard.html';
-    });
+// Inscription
+document.getElementById('signupForm')?.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value;
 
-    // Connexion utilisateur
-    $('#loginForm').submit(function(e) {
-        e.preventDefault();
-        const email = $('#email').val();
-        const password = $('#password').val();
-        const user = data.users.find(u => u.email === email && u.password === password);
-        if (!user) {
-            alert('Email ou mot de passe incorrect.');
-            return;
-        }
-        if (user.role === 'student') {
-            window.location.href = 'student-dashboard.html';
-        } else if (user.role === 'admin') {
-            window.location.href = 'admin.html';
-        }
-        alert('Connexion réussie !');
-    });
+    if (!email.endsWith('@laplateforme.io')) {
+        alert('Seuls les emails @laplateforme.io sont autorisés.');
+        return;
+    }
 
-    // Confirmation date
-    $('#confirmDate').click(function() {
-        const selectedDate = $('#eventSelect').val();
-        const today = new Date('2025-03-21'); // Date actuelle
-        const chosenDate = new Date(selectedDate);
+    await fetchData();
+    if (data.users.some(u => u.email === email)) {
+        alert('Un compte avec cet email existe déjà.');
+        return;
+    }
 
-        if (chosenDate < today) {
-            alert('Vous ne pouvez pas choisir une date passée.');
-            return;
-        }
+    const newUser = { id: data.users.length + 1, email, password, role: 'student' };
+    data.users.push(newUser);
+    data.registrations.push({ userId: newUser.id, eventId: null, status: 'en attente' });
+    await saveData(data);
 
-        const event = data.events.find(e => e.date === selectedDate);
-        if (event.registered >= event.maxParticipants) {
-            alert('Cet événement est complet.');
-            return;
-        }
-
-        event.registered += 1; // Simule l'inscription
-        alert(`Présence confirmée pour ${event.title} le ${selectedDate}`);
-        $('#calendarModal').modal('hide');
-    });
+    sessionStorage.setItem('loggedInUser', JSON.stringify(newUser));
+    alert('Inscription réussie !');
+    closeModal('signupModal');
+    window.location.href = 'student-dashboard.html';
 });
+
+// Connexion utilisateur
+document.getElementById('loginForm')?.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    await fetchData();
+    const user = data.users.find(u => u.email === email && u.password === password);
+
+    if (!user) {
+        alert('Email ou mot de passe incorrect.');
+        return;
+    }
+
+    sessionStorage.setItem('loggedInUser', JSON.stringify(user));
+    alert('Connexion réussie !');
+    window.location.href = user.role === 'student' ? 'student-dashboard.html' : 'admin.html';
+});
+
+// Confirmation/Modification date
+document.getElementById('confirmDate')?.addEventListener('click', async function () {
+    const selectedDate = document.getElementById('eventDate').value;
+
+    if (!selectedDate) {
+        alert('Veuillez sélectionner une date.');
+        return;
+    }
+
+    await fetchData();
+    const user = JSON.parse(sessionStorage.getItem('loggedInUser'));
+    const event = data.events.find(e => e.date === selectedDate);
+
+    if (!event || event.registered >= event.maxParticipants) {
+        alert('Événement complet ou non disponible.');
+        return;
+    }
+
+    const registration = data.registrations.find(r => r.userId === user.id);
+    if (registration) {
+        registration.eventId = event.id;
+        registration.status = 'en attente';
+    } else {
+        data.registrations.push({ userId: user.id, eventId: event.id, status: 'en attente' });
+    }
+
+    event.registered++;
+    await saveData(data);
+    alert(`Votre présence pour le ${selectedDate} a été enregistrée.`);
+    closeModal('calendarModal');
+    window.location.reload();
+});
+
+// Déconnexion
+document.getElementById('logoutButton')?.addEventListener('click', function () {
+    sessionStorage.removeItem('loggedInUser');
+    alert('Vous avez été déconnecté.');
+    window.location.href = 'index.html';
+});
+
+// Affichage des alertes UX avec Bootstrap Toast
+function showToast(message, type = "info") {
+    const toastContainer = document.getElementById("toastContainer");
+    const toast = document.createElement("div");
+    toast.className = `toast align-items-center text-bg-${type} border-0`;
+    toast.innerHTML = `<div class="d-flex">
+        <div class="toast-body">${message}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>`;
+    toastContainer.appendChild(toast);
+    new bootstrap.Toast(toast).show();
+}
