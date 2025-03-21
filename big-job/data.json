@@ -1,0 +1,28 @@
+{
+    "users": [
+        {
+            "email": "user1@laplateforme.io",
+            "password": "password123",
+            "role": "student"
+        },
+        {
+            "email": "admin@laplateforme.io",
+            "password": "adminpass",
+            "role": "admin"
+        }
+    ],
+    "events": [
+        {
+            "date": "2025-03-25",
+            "title": "Journée Portes Ouvertes - Alternance",
+            "maxParticipants": 50,
+            "registered": 30
+        },
+        {
+            "date": "2025-03-26",
+            "title": "Journée Portes Ouvertes - Développement Web",
+            "maxParticipants": 40,
+            "registered": 20
+        }
+    ]
+}
